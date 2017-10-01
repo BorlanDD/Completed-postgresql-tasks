@@ -1,0 +1,78 @@
+﻿
+В рамках БД "Фильмография" произвести следующие изменения:
+1. Организовать связи между таблицами, добавив недостающие поля в таблицы (на один фильм может приходится множество актеров и режиссеров).
+    		CREATE TABLE actors_in_films (
+      			movie_id integer NOT NULL,
+      			actor_id integer NOT NULL
+    		);
+
+    		CREATE TABLE producers_films (
+      			movie_id integer NOT NULL,
+      			producer_id integer NOT NULL
+    		);
+
+    		ALTER TABLE movies DROP CONSTRAINT PK_movie;
+
+    		CREATE SEQUENCE auto_id_for_movies INCREMENT BY 1;
+    		ALTER TABLE movies ADD COLUMN movie_id integer DEFAULT nextval('auto_id_for_movies') NOT NULL PRIMARY KEY;
+	
+		ALTER TABLE actors ADD CONSTRAINT PK_actor PRIMARY KEY (actor_id);
+     		ALTER TABLE producer ADD CONSTRAINT PK_producer PRIMARY KEY (producer_id);
+    
+    		ALTER TABLE actors_in_films ADD CONSTRAINT movie_fk FOREIGN KEY (movie_id) REFERENCES movies (movie_id);
+    		ALTER TABLE actors_in_films ADD CONSTRAINT actor_fk FOREIGN KEY (actor_id) REFERENCES actors (actor_id);
+
+    		ALTER TABLE producers_films ADD CONSTRAINT movie_fk FOREIGN KEY (movie_id) REFERENCES movies (movie_id);
+    		ALTER TABLE producers_films ADD CONSTRAINT producer_id FOREIGN KEY (producer_id) REFERENCES producer (producer_id);
+    
+2. Добавить в таблицу режиссёров связь с их лучшим фильмом в таблице фильмы. Подумать как бы это пришлось делать, если бы ссылка предполагалась изначально.
+    		ALTER TABLE producer ADD COLUMN best_movie_id integer;
+    		ALTER TABLE producer ADD CONSTRAINT best_movie_fk FOREIGN KEY (best_movie_id) REFERENCES movies (movie_id);
+    
+3. Поменять для таблицы фильмы первичный ключ: добавить новое поле(movie_id) и соответстувенно новую последовательность для этого поля.
+    		Выполнено в первом пункте
+    
+4. Изменить значение по умолчанию для поля Страна на "UK".
+    		ALTER TABLE movies ALTER COLUMN country SET DEFAULT 'UK'; 
+    
+5. Удалить ограничение на число фильмо для актеров.
+    		ALTER TABLE actors DROP CONSTRAINT check_count_films;
+
+6. Поменять ограничение на бюджет фильма: поле бюджет не должен быть < 1000. 
+    		ALTER TABLE movies DROP CONSTRAINT check_budget;
+    		ALTER TABLE movies ADD CONSTRAINT check_budget CHECK (budget > 999::money);
+
+7. Выделить жанры в отдельную таблицу, организовать межтабличную связь.
+		CREATE TABLE genres (
+			genre_name varchar(15) NOT NULL PRIMARY KEY
+		);
+
+		ALTER TABLE movies DROP COLUMN genres;
+
+		CREATE TABLE genres_in_films (
+			movie_id integer NOT NULL,
+			genre_name varchar(15) NOT NULL
+		);
+
+		ALTER TABLE genres_in_films ADD CONSTRAINT movie_fk FOREIGN KEY (movie_id) REFERENCES movies (movie_id);
+		ALTER TABLE genres_in_films ADD CONSTRAINT genre_name_fk FOREIGN KEY (genre_name) REFERENCES genres (genre_name);
+
+		INSERT INTO genres (genre_name) VALUES ('ужасы'), ('боевик'), ('фантастика'), ('комедия');
+	
+
+8. Изменить тип для поля страна рождения. Сделать его перечислением из следующих вариантов ("USA", "UK", "Russia", "France", "Germany")
+		CREATE TYPE motherlands_type AS ENUM ('USA', 'UK', 'Russia', 'France', 'Germany', 'Canada', 'India');
+		ALTER TABLE producer ALTER COLUMN motherland DROP DEFAULT;
+
+		ALTER TABLE person ALTER COLUMN motherland TYPE motherlands_type USING motherland::motherlands_type;
+	
+		ALTER TABLE producer ALTER COLUMN motherland SET DEFAULT 'USA';
+
+9. Добавить проверку на поле дата рождения: она не должна превышать текущую дату.
+		ALTER TABLE person ADD CONSTRAINT check_birthday CHECK (birthday < CURRENT_DATE);
+
+10. Создать индекс по фамилии и имени Актеров.
+		CREATE INDEX surname_name_index ON actors (surname, name);
+
+11. Обновить таблицу фильмов. Добавить в название в скобках год издания фильма.
+		UPDATE movies SET name = name || ' (' || year || ')';
