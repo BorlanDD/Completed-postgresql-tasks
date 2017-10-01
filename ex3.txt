@@ -8,33 +8,33 @@
 
 Фильм (movies): Наименование(name), Описание(description), Год(year), Жанры (genres), Страна (country), Бюджет(budget)
 		CREATE TABLE movies (
-			name varchar(40) NOT NULL,
-			description text,
-			year smallint NOT NULL,
-			genres varchar(10),
-			country varchar(20),
-			budget money
+			movie_name varchar(50) NOT NULL,
+			movie_description text,
+			movie_year smallint NOT NULL,
+			movie_genres varchar(40),
+			movie_country varchar(20),
+			movie_budget money
 		);
 
 Актеры (actors): Фамилия (surname), Имя(name), Дата рождения(birthday), Страна рождения(motherland), Число фильмов(number_of_movies)
 		CREATE TABLE actors (
-			surname varchar(20) NOT NULL,
-			name varchar(20) NOT NULL,
-			birthday date,
-			motherland varchar(20),
-			number_of_movies smallint
+			actor_surname varchar(20) NOT NULL,
+			actor_name varchar(20) NOT NULL,
+			actor_birthday date,
+			actor_motherland varchar(20),
+			actor_number_of_movies smallint
 		);
 
 Режиссёры (producer): Фамилия (surname), Имя(name), Дата рождения(birthday), Страна рождения(motherland)
 		CREATE TABLE producer (
-			surname varchar(20) NOT NULL,
-			name varchar(20) NOT NULL,
-			birthday date,
-			motherland varchar(20)
+			producer_surname varchar(20) NOT NULL,
+			producer_name varchar(20) NOT NULL,
+			producer_birthday date,
+			producer_motherland varchar(20)
 		);
 
 Для фильмов определить первичным ключом Наименование и Год
-		ALTER TABLE movies ADD CONSTRAINT PK_movie PRIMARY KEY (name, year);
+		ALTER TABLE movies ADD CONSTRAINT PK_movie PRIMARY KEY (movie_name, movie_year);
 
 Для актеров указать новый столбец, который будет заполняться с помощью последовательности
 		CREATE SEQUENCE auto_id_for_actors INCREMENT BY 1;
@@ -47,22 +47,22 @@
 Реализовать ограничения check:
     
 на поле год в таблице фильм, что он должен быть больше 1900 и меньше текущего + 10 лет.
-    		ALTER TABLE movies ADD CONSTRAINT chek_year CHECK (year >= 1900 AND year < (date_part('year', CURRENT_DATE) + 10));
+    		ALTER TABLE movies ADD CONSTRAINT CK_movies_year CHECK (movie_year >= 1900 AND movie_year < (date_part('year', CURRENT_DATE) + 10));
 
 поле бюджет не должен быть < 10000
-    		ALTER TABLE movies ADD CONSTRAINT check_budget CHECK (budget > 9999::money);
+    		ALTER TABLE movies ADD CONSTRAINT CK_movies_budget CHECK (movie_budget > 9999::money);
     
 поле число фильмов должно иметь значение более 5.
-    		ALTER TABLE actors ADD CONSTRAINT check_count_films CHECK (number_of_movies > 5);
+    		ALTER TABLE actors ADD CONSTRAINT CK_actors_number_of_movies CHECK (actor_number_of_movies > 5);
 
 Фамилия Имя и Дата рождения должны быть для актера уникальными
-    		ALTER TABLE actors ADD UNIQUE (surname, name, birthday);
+    		ALTER TABLE actors ADD UNIQUE (actor_surname, actor_name, actor_birthday);
     
 Для таблицы Режиссёр поле Страна рождения должна иметь значение по умолчанию USA.
-    		ALTER TABLE producer ALTER COLUMN motherland SET DEFAULT 'USA';
+    		ALTER TABLE producer ALTER COLUMN producer_motherland SET DEFAULT 'USA';
 
 Заполнить таблицы тестовыми значениями по 6 записей в каждой
-		INSERT INTO movies (name, description, year, genres, country, budget)
+		INSERT INTO movies (movie_name, movie_description, movie_year, movie_genres, movie_country, movie_budget)
 		VALUES ('ОНО', 'Лучший ужас 2017 года', '2017', 'ужасы', 'USA', '100000'), 
 			('Человек паук: Возвращение домой', 'Лучший супергеройский фильм 2017 года', '2017', 'фантастика', 'USA', '500000'),
 			('Кошмар на улице Вязов', 'Фредди Крюгер возвращается', '2011', 'ужасы', 'USA', '50000'),
@@ -70,7 +70,7 @@
 			('Боец', 'История молодого бойца', '2015', 'боевик', 'Russia', '15000'),
 			('Бой с тенью', 'Бои', '2006', 'боевик, драма', 'Russia', '20000');
 
-		INSERT INTO actors (surname, name, birthday, motherland, number_of_movies)
+		INSERT INTO actors (actor_surname, actor_name, actor_birthday, actor_motherland, actor_number_of_movies)
 		VALUES ('Петров', 'Иван', '10.02.1990', 'Russia', '10'),
 			('Валейболов', 'Баскетбол', '02.08.1995', 'Russia', '15'),
 			('Козлов', 'Василий', '20.02.2000', 'Canada', '20'),
@@ -78,7 +78,7 @@
 			('Иванов', 'Петр', '25.11.1960', 'Russia', '47'),
 			('Сидоров', 'Иван', '18.06.1975', 'Canada', '24');
 
-		INSERT INTO producer (surname, name, birthday, motherland)
+		INSERT INTO producer (producer_surname, producer_name, producer_birthday, producer_motherland)
 		VALUES ('Кашапов', 'Иван', '10.04.1992', 'Russia'),
 			('Дошираков', 'Роман', '13.08.1997', 'India'),
 			('Липов', 'Евгений', '20.02.1936', 'Russia'),
@@ -91,29 +91,29 @@
 		DROP TABLE producer;
 
 		CREATE TABLE person (
-			surname varchar(20) NOT NULL,
-			name varchar(20) NOT NULL,
-			birthday date,
-			motherland varchar(20)
+			person_surname varchar(20) NOT NULL,
+			person_name varchar(20) NOT NULL,
+			person_birthday date,
+			person_motherland varchar(20)
 		);
 		
 		CREATE TABLE actors (
-			number_of_movies smallint
+			actor_number_of_movies smallint
 		) INHERITS (person);
 
 		CREATE TABLE producer (
 		)  INHERITS (person);
 
-		ALTER TABLE actors ADD COLUMN actor_id integer DEFAULT nextval('auto_id_for_actors') NOT NULL;
-		ALTER TABLE producer ADD COLUMN producer_id integer DEFAULT nextval('auto_id_for_producers') NOT NULL;
+		ALTER TABLE actors ADD COLUMN actor_id integer DEFAULT nextval('auto_id_for_actors') UNIQUE NOT NULL;
+		ALTER TABLE producer ADD COLUMN producer_id integer DEFAULT nextval('auto_id_for_producers') UNIQUE NOT NULL;
 
-    		ALTER TABLE actors ADD CONSTRAINT check_count_films CHECK (number_of_movies > 5);
+    		ALTER TABLE actors ADD CONSTRAINT CK_actors_number_of_movies CHECK (actor_number_of_movies > 5);
 
-    		ALTER TABLE actors ADD UNIQUE (surname, name, birthday);
+    		ALTER TABLE actors ADD UNIQUE (person_surname, person_name, person_birthday);
     
-    		ALTER TABLE producer ALTER COLUMN motherland SET DEFAULT 'USA';
+    		ALTER TABLE producer ALTER COLUMN person_motherland SET DEFAULT 'USA';
 
-		INSERT INTO actors (surname, name, birthday, motherland, number_of_movies)
+		INSERT INTO actors (person_surname, person_name, person_birthday, person_motherland, actor_number_of_movies)
 		VALUES ('Петров', 'Иван', '10.02.1990', 'Russia', '10'),
 			('Валейболов', 'Баскетбол', '02.08.1995', 'Russia', '15'),
 			('Козлов', 'Василий', '20.02.2000', 'Canada', '20'),
@@ -121,7 +121,7 @@
 			('Иванов', 'Петр', '25.11.1960', 'Russia', '47'),
 			('Сидоров', 'Иван', '18.06.1975', 'Canada', '24');
 
-		INSERT INTO producer (surname, name, birthday, motherland)
+		INSERT INTO producer (person_surname, person_name, person_birthday, person_motherland)
 		VALUES ('Кашапов', 'Иван', '10.04.1992', 'Russia'),
 			('Дошираков', 'Роман', '13.08.1997', 'India'),
 			('Липов', 'Евгений', '20.02.1936', 'Russia'),
